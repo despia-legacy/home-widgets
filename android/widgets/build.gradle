@@ -1,0 +1,34 @@
+// Engineer-owned module build. It runs only in the offline, credential-free NX compile job.
+// Jetpack Glance 1.2.0 is the latest stable release (read 2026-11-20:
+// https://developer.android.com/jetpack/androidx/releases/glance, 1.2.0 of August 26, 2026). The newer
+// 1.3.0-alpha02 needs AGP 9.2 (its Compose compileSdk is 37); the base app builds with AGP 8.9.1.
+// Glance 1.2.0 asks only for versions the base app already meets or raises (compose runtime 1.7.8,
+// work-runtime-ktx 2.7.1, core-ktx 1.7.0, kotlin-stdlib 2.0.21), so no base coordinate changes.
+// Kotlin and the Compose compiler plugin come from the base app's root build (Kotlin 2.3.10).
+apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+apply plugin: 'org.jetbrains.kotlin.plugin.compose'
+
+android {
+    namespace 'despia.ext.widgets'
+    compileSdk 36
+    defaultConfig {
+        minSdk 24
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+    kotlinOptions {
+        jvmTarget = '17'
+    }
+    buildFeatures {
+        compose true
+    }
+}
+
+dependencies {
+    implementation project(':nativeext-api')
+    implementation 'androidx.glance:glance-appwidget:1.2.0'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1'
+}

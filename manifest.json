@@ -1,0 +1,196 @@
+{
+  "version": "1.0.0",
+  "bridge": {
+    "routes": [
+      {
+        "name": "set",
+        "params": {
+          "template": {
+            "type": "enum",
+            "values": [
+              "stat",
+              "list"
+            ],
+            "required": true
+          },
+          "data": {
+            "type": "string",
+            "max": 4096,
+            "required": true
+          }
+        },
+        "output": {
+          "variable": "widgetsSet",
+          "callback": "onWidgetsSet"
+        }
+      },
+      {
+        "name": "get",
+        "params": {
+          "template": {
+            "type": "enum",
+            "values": [
+              "stat",
+              "list"
+            ],
+            "required": true
+          }
+        },
+        "output": {
+          "variable": "widgetsGet",
+          "callback": "onWidgetsGet"
+        }
+      },
+      {
+        "name": "clear",
+        "params": {
+          "template": {
+            "type": "enum",
+            "values": [
+              "stat",
+              "list"
+            ],
+            "required": true
+          }
+        },
+        "output": {
+          "variable": "widgetsClear",
+          "callback": "onWidgetsClear"
+        }
+      },
+      {
+        "name": "reload",
+        "params": {
+          "template": {
+            "type": "enum",
+            "values": [
+              "stat",
+              "list"
+            ]
+          }
+        },
+        "output": {
+          "variable": "widgetsReload",
+          "callback": "onWidgetsReload"
+        }
+      },
+      {
+        "name": "installed",
+        "params": {},
+        "output": {
+          "variable": "widgetsInstalled",
+          "callback": "onWidgetsInstalled"
+        }
+      },
+      {
+        "name": "taps",
+        "params": {
+          "ack": {
+            "type": "int",
+            "min": 0,
+            "max": 9007199254740991
+          }
+        },
+        "output": {
+          "variable": "widgetsTaps",
+          "callback": "onWidgetsTaps"
+        }
+      },
+      {
+        "name": "pin",
+        "params": {
+          "template": {
+            "type": "enum",
+            "values": [
+              "stat",
+              "list"
+            ],
+            "required": true
+          }
+        },
+        "output": {
+          "variable": "widgetsPin",
+          "callback": "onWidgetsPin"
+        }
+      }
+    ],
+    "events": [
+      {
+        "name": "tap",
+        "callback": "onWidgetTap",
+        "scope": "document"
+      }
+    ]
+  },
+  "ios": {
+    "app": {
+      "entry_type": "WidgetsExtension",
+      "sources": [
+        "ios/app/WidgetsExtension.swift",
+        "ios/shared/WidgetModel.swift"
+      ],
+      "frameworks": [
+        "WidgetKit"
+      ],
+      "entitlements": {
+        "com.apple.security.application-groups": [
+          "widgets"
+        ]
+      },
+      "lifecycle": [
+        "launch",
+        "scene",
+        "open_url"
+      ],
+      "claims": {
+        "url_schemes": [
+          "nxwidgets"
+        ]
+      }
+    },
+    "targets": [
+      {
+        "kind": "widgetkit",
+        "name": "NXWidgets",
+        "sources": [
+          "ios/targets/NXWidgets/NXWidgetsBundle.swift"
+        ],
+        "shared_sources": [
+          "ios/shared/WidgetModel.swift"
+        ],
+        "frameworks": [
+          "AppIntents"
+        ],
+        "info_plist": {
+          "NSWidgetDescription": "Stat and list widgets"
+        },
+        "entitlements": {
+          "com.apple.security.application-groups": [
+            "widgets"
+          ]
+        },
+        "deployment_target": "17.0"
+      }
+    ]
+  },
+  "android": {
+    "entry_class": "despia.ext.widgets.WidgetsExtension",
+    "lifecycle": [
+      "application_create",
+      "new_intent"
+    ],
+    "claims": {
+      "intent_schemes": [
+        "nxwidgets"
+      ]
+    },
+    "modules": [
+      {
+        "kind": "custom",
+        "name": "widgets",
+        "dir": "android/widgets",
+        "link": "implementation"
+      }
+    ]
+  }
+}

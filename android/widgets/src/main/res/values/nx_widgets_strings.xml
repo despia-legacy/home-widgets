@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="nx_widgets_stat_label">Stat</string>
+    <string name="nx_widgets_stat_description">A number with its trend and progress.</string>
+    <string name="nx_widgets_list_label">List</string>
+    <string name="nx_widgets_list_description">A short list with check boxes.</string>
+    <string name="nx_widgets_empty_title">No data yet</string>
+    <string name="nx_widgets_empty_body">Open the app to fill this widget.</string>
+    <string name="nx_widgets_list_empty">Nothing here</string>
+</resources>

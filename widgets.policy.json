@@ -1,0 +1,56 @@
+{
+  "exposed_components": {
+    "android": [
+      {
+        "tag": "receiver",
+        "name": "despia.ext.widgets.ListWidgetReceiver",
+        "exported": true,
+        "enabled": null,
+        "permission": null,
+        "intent_filters": [
+          {
+            "tag": "intent-filter",
+            "attrs": {},
+            "children": [
+              {
+                "tag": "action",
+                "attrs": {
+                  "name": "android.appwidget.action.APPWIDGET_UPDATE"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "tag": "receiver",
+        "name": "despia.ext.widgets.StatWidgetReceiver",
+        "exported": true,
+        "enabled": null,
+        "permission": null,
+        "intent_filters": [
+          {
+            "tag": "intent-filter",
+            "attrs": {},
+            "children": [
+              {
+                "tag": "action",
+                "attrs": {
+                  "name": "android.appwidget.action.APPWIDGET_UPDATE"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "tag": "service",
+        "name": "androidx.glance.appwidget.GlanceRemoteViewsService",
+        "exported": true,
+        "enabled": null,
+        "permission": "android.permission.BIND_REMOTEVIEWS",
+        "intent_filters": []
+      }
+    ]
+  }
+}

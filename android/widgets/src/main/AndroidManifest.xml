@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The two Glance widget receivers. Exported with the APPWIDGET_UPDATE filter, as every app widget
+     provider is, so the launcher's AppWidget service can reach them. Glance's own library manifest adds
+     its action trampolines, callback receivers and RemoteViews service. -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application>
+        <receiver
+            android:name="despia.ext.widgets.StatWidgetReceiver"
+            android:exported="true"
+            android:label="@string/nx_widgets_stat_label">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/nx_widgets_stat_info" />
+        </receiver>
+        <receiver
+            android:name="despia.ext.widgets.ListWidgetReceiver"
+            android:exported="true"
+            android:label="@string/nx_widgets_list_label">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/nx_widgets_list_info" />
+        </receiver>
+    </application>
+</manifest>
