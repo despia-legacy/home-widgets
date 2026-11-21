@@ -42,19 +42,23 @@ Install the SDK in your web app:
 npm install despia-native
 ```
 
-Copy `example/src/lib/despia-extension.js` to your app's `src/lib/` and adjust the import path if needed. It imports `despia` from `despia-native`, calls the SDK and returns the native answer's `data`. It checks native error envelopes and throws an error with their `code`. The SDK itself resolves native `ok: false` envelopes; it does not reject them. A single watched value becomes `undefined` after 30 seconds, which this helper reports as `sdk_timeout`.
+Call the published SDK directly and watch the exact answer variable declared in `manifest.json`. The SDK resolves to an object keyed by that variable; the native envelope is inside it. Check both a missing reply and `ok: false` before using `data`. Native errors resolve through the SDK; they do not reject its promise. A single watched variable becomes `undefined` after 30 seconds without a reply.
 
-Each helper call forwards a unique native callback into a separate watched value, so overlapping calls do not share response globals. `onExtensionEvent` registers the declared native event callbacks and returns a cleanup function. Events are callbacks, not values you can poll from the SDK proxy.
+Await calls that use the same answer variable sequentially. The SDK's command queue does not correlate concurrent responses. Encode every query value with `encodeURIComponent`, including JSON text. Spaces become `%20`; a literal plus becomes `%2B`. Do not use unmodified `URLSearchParams` form encoding, which uses plus for spaces.
 
-Importing the SDK is safe during server rendering. Run calls and event subscriptions only from browser click handlers or mounted client hooks. React and Vue can use the browser APIs used by this helper; in Next.js and other server-rendered apps, keep these calls in client code. The extension must be included in the installed Despia V3 app; a browser preview has no native extension features.
+Importing the SDK is safe during server rendering. Run native calls only in browser click handlers or mounted client hooks, including client components in Next.js. The extension must be included in the installed Despia V3 app; a browser preview has no native extension features. Optional event handlers use the declared callback on `globalThis`, not an SDK subscription API. Save and restore any callback your app already owns when a component mounts and unmounts.
 
 ## Calling it
 
 ```javascript
-import { extensionCall } from './lib/despia-extension.js';
+import despia from 'despia-native';
 
-const answer = await extensionCall('widgets', 'installed');
-console.log(answer);
+const answerReply = await despia('extension://widgets/installed', ['widgetsInstalled']);
+const answer = answerReply.widgetsInstalled;
+if (answer === undefined) throw new Error('No native reply within 30 seconds');
+if (!answer.ok) throw new Error(answer.code + ': ' + answer.error);
+
+console.log(answer.data);
 ```
 
 Calls use `extension://widgets/<route>?<params>`. Each route answers once, in the page that made the call: the runtime sets the route's answer variable in the page, then calls the route's callback. Only declared parameters are accepted. Keep large data on the native side and pass identifiers through the bridge. A call URL is at most 8192 characters.
@@ -98,22 +102,38 @@ The build writes the `com.apple.security.application-groups` entitlement with th
 ## Using it from your web app
 
 ```javascript
-import { extensionCall, onExtensionEvent } from './lib/despia-extension.js';
-const widgets = (route, params) => extensionCall('widgets', route, params);
-const stopTaps = onExtensionEvent('onWidgetTap', tap => console.log(tap));
+import despia from 'despia-native';
 
-await widgets('set', { template: 'stat', data: {
-  title: 'Revenue', value: '$12.4k', unit: 'USD', caption: 'Today', progress: 0.42, trend: 'up',
-  link: '/stats/revenue', actions: [{ id: 'refresh', label: 'Refresh' }]
-}});
-await widgets('set', { template: 'list', data: {
-  title: 'Today', link: '/todo', action: { id: 'add', label: 'Add' },
-  items: [{ id: 'a1', title: 'Buy milk', checked: false, link: '/todo/a1' }]
-}});
-const pending = await widgets('taps');
-for (const tap of pending.taps) console.log(tap);
-if (pending.taps.length) await widgets('taps', { ack: pending.taps.at(-1).seq });
-// Call stopTaps() on component unmount. Re-read taps after a page reload.
+const stat = { title: 'Revenue', value: '$12.4k', unit: 'USD', caption: 'Today', progress: 0.42, trend: 'up',
+  link: '/stats/revenue', actions: [{ id: 'refresh', label: 'Refresh' }] };
+
+const storedReply = await despia(`extension://widgets/set?template=${encodeURIComponent('stat')}&data=${encodeURIComponent(JSON.stringify(stat))}`, ['widgetsSet']);
+const stored = storedReply.widgetsSet;
+if (stored === undefined) throw new Error('No native reply within 30 seconds');
+if (!stored.ok) throw new Error(stored.code + ': ' + stored.error);
+
+const list = { title: 'Today', link: '/todo', action: { id: 'add', label: 'Add' },
+  items: [{ id: 'a1', title: 'Buy milk', checked: false, link: '/todo/a1' }] };
+
+const listedReply = await despia(`extension://widgets/set?template=${encodeURIComponent('list')}&data=${encodeURIComponent(JSON.stringify(list))}`, ['widgetsSet']);
+const listed = listedReply.widgetsSet;
+if (listed === undefined) throw new Error('No native reply within 30 seconds');
+if (!listed.ok) throw new Error(listed.code + ': ' + listed.error);
+
+const pendingReply = await despia('extension://widgets/taps', ['widgetsTaps']);
+const pending = pendingReply.widgetsTaps;
+if (pending === undefined) throw new Error('No native reply within 30 seconds');
+if (!pending.ok) throw new Error(pending.code + ': ' + pending.error);
+
+for (const tap of pending.data.taps) console.log(tap);
+if (pending.data.taps.length) {
+const acknowledgedReply = await despia(`extension://widgets/taps?ack=${encodeURIComponent(pending.data.taps.at(-1).seq)}`, ['widgetsTaps']);
+const acknowledged = acknowledgedReply.widgetsTaps;
+if (acknowledged === undefined) throw new Error('No native reply within 30 seconds');
+if (!acknowledged.ok) throw new Error(acknowledged.code + ': ' + acknowledged.error);
+}
+globalThis.onWidgetTap = tap => console.log(tap);
+// Remove or restore your event callback on unmount. Re-read taps after a page reload.
 ```
 
 On Android, `extension://widgets/pin?template=stat` asks the launcher to place the widget. On iOS the person adds it from the widget gallery, and `pin` answers `platform_limit`.
