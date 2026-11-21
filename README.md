@@ -132,7 +132,22 @@ const acknowledged = acknowledgedReply.widgetsTaps;
 if (acknowledged === undefined) throw new Error('No native reply within 30 seconds');
 if (!acknowledged.ok) throw new Error(acknowledged.code + ': ' + acknowledged.error);
 }
-globalThis.onWidgetTap = tap => console.log(tap);
+const previousWidgetTap = globalThis.onWidgetTap;
+const handleWidgetTap = tap => {
+  try {
+    if (typeof previousWidgetTap === 'function') previousWidgetTap(tap);
+  } finally {
+    console.log(tap)
+  }
+};
+globalThis.onWidgetTap = handleWidgetTap;
+const cleanupWidgetTap = () => {
+  if (globalThis.onWidgetTap !== handleWidgetTap) return;
+  if (previousWidgetTap === undefined) delete globalThis.onWidgetTap;
+  else globalThis.onWidgetTap = previousWidgetTap;
+};
+// Call cleanupWidgetTap() when this component unmounts.
+
 // Remove or restore your event callback on unmount. Re-read taps after a page reload.
 ```
 
